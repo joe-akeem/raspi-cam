@@ -18,17 +18,7 @@ public class Camera {
 		final GpioPinDigitalInput myButton = gpio.provisionDigitalInputPin(
 				RaspiPin.GPIO_02, PinPullResistance.PULL_DOWN);
 
-		myButton.addListener(new GpioPinListenerDigital() {
-
-			@Override
-			public void handleGpioPinDigitalStateChangeEvent(
-					GpioPinDigitalStateChangeEvent event) {
-				// display pin state on console
-				System.out.println(" --> GPIO PIN STATE CHANGE: "
-						+ event.getPin() + " = " + event.getState());
-			}
-
-		});
+		myButton.addListener(new OnOffStateListener());
 
 		for (;;) {
 			Thread.sleep(500);
