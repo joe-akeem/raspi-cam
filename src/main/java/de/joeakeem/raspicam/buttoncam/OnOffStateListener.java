@@ -1,4 +1,4 @@
-package de.joeakeem.raspicam;
+package de.joeakeem.raspicam.buttoncam;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
