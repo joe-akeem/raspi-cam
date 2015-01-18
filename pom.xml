@@ -65,5 +65,27 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>welcomeSounds</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.3.2</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<mainClass>de.joeakeem.raspicam.welcomesound.WelcomeSounds</mainClass>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
