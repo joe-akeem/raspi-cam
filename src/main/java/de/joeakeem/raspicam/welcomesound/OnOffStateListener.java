@@ -16,15 +16,19 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 	private static final String WIDTH = "960";
 	private static final String DEST_DIR = "/home/pi/capture/";
 	
-	private long lastPlayed = 0;
-	
-	private Random rand = new Random();
- 
 	// Remember to add filename and extension!
 	private static final String START_INSTRUCTION = "/usr/bin/raspivid -t 0 -h " +
 			HEIGHT + " -w "+ WIDTH + " -o " + DEST_DIR;
 	
-	private static final String OXM_PLAYER = "omxplayer";
+	private static final String KILL_INSTRUCTION = "killall raspivid";
+	
+	private static final String OXM_PLAYER_INTRUCTION = "omxplayer";
+	
+	private long lastPlayed = 0;
+	private Random rand = new Random();
+	private boolean capturing = false;
+	private long capturingStartTime = 0;
+
  
 	@Override
 	public void handleGpioPinDigitalStateChangeEvent(
@@ -36,6 +40,16 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 				lastPlayed = now;
 				playSound();
 			}
+			if (!capturing) {
+				capturing = true;
+				capturingStartTime = System.currentTimeMillis();
+				startCapture();
+			} else {
+				if (now - capturingStartTime >= 60000) { // don't record videos longer than 1 minute
+					killCapture();
+					capturing = false;
+				}
+			}
 		}
 	}
 
@@ -45,7 +59,7 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 		if (soundFiles != null) {
 			int soundToPlay = rand.nextInt(soundFiles.length);
 			System.out.println("Playing sound '" + soundFiles[soundToPlay] + "'");
-			executeCommand(OXM_PLAYER + " " + soundFiles[soundToPlay]);
+			executeCommand(OXM_PLAYER_INTRUCTION + " " + soundFiles[soundToPlay]);
 		} else {
 			System.out.println("No sounds to play!");
 		}
@@ -59,6 +73,11 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 				+ dateFormat.format(date) + ".h264";
 		System.out.println("Starting te record to '" + filename + "'");
 		executeCommand(filename);
+	}
+	
+	private void killCapture() {
+		System.out.println("Killing all recording");
+		executeCommand(KILL_INSTRUCTION);
 	}
 
 	private void executeCommand(String cmd) {
