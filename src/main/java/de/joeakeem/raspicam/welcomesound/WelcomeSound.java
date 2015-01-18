@@ -1,5 +1,7 @@
 package de.joeakeem.raspicam.welcomesound;
 
+import org.apache.log4j.Logger;
+
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
@@ -14,7 +16,9 @@ import com.pi4j.io.gpio.RaspiPin;
  *
  */
 public class WelcomeSound {
-
+	
+	public static final Logger LOG = Logger.getLogger(WelcomeSound.class);
+	
 	public static void main(String[] args) throws InterruptedException {
 		final GpioController gpio = GpioFactory.getInstance();
 

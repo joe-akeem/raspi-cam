@@ -6,28 +6,29 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
 
+import org.apache.log4j.Logger;
+
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 public class OnOffStateListener implements GpioPinListenerDigital {
 	
+	public static final Logger LOG = Logger.getLogger(OnOffStateListener.class);
+	
 	private static final String HEIGHT = "720";
 	private static final String WIDTH = "960";
 	private static final String DEST_DIR = "/home/pi/capture/";
 	
 	// Remember to add filename and extension!
-	private static final String START_INSTRUCTION = "/usr/bin/raspivid -t 0 -h " +
+	private static final String START_INSTRUCTION = "/usr/bin/raspivid -t 30000 -h " +
 			HEIGHT + " -w "+ WIDTH + " -o " + DEST_DIR;
-	
-	private static final String KILL_INSTRUCTION = "killall raspivid";
 	
 	private static final String OXM_PLAYER_INTRUCTION = "omxplayer";
 	
 	private long lastPlayed = 0;
 	private Random rand = new Random();
 	private boolean capturing = false;
-	private long capturingStartTime = 0;
 
  
 	@Override
@@ -42,12 +43,10 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 			}
 			if (!capturing) {
 				capturing = true;
-				capturingStartTime = System.currentTimeMillis();
-				startCapture();
-			} else {
-				if (now - capturingStartTime >= 60000) { // don't record videos longer than 1 minute
-					killCapture();
-					capturing = false;
+				try {
+					startCapture();
+				} catch (InterruptedException e) {
+					// ignore
 				}
 			}
 		}
@@ -58,34 +57,31 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 		File[] soundFiles = soundsDir.listFiles();
 		if (soundFiles != null) {
 			int soundToPlay = rand.nextInt(soundFiles.length);
-			System.out.println("Playing sound '" + soundFiles[soundToPlay] + "'");
+			LOG.info("Playing sound '" + soundFiles[soundToPlay] + "'");
 			executeCommand(OXM_PLAYER_INTRUCTION + " " + soundFiles[soundToPlay]);
 		} else {
-			System.out.println("No sounds to play!");
+			LOG.error("No sounds to play!");
 		}
 	}
 
-	private void startCapture() {
+	private void startCapture() throws InterruptedException {
 		Date date = new Date();
 		SimpleDateFormat dateFormat = new SimpleDateFormat(
 				"yyyy-MM-dd-HH-mm-ss");
 		String filename = START_INSTRUCTION + "vid-"
 				+ dateFormat.format(date) + ".h264";
-		System.out.println("Starting te record to '" + filename + "'");
-		executeCommand(filename);
-	}
-	
-	private void killCapture() {
-		System.out.println("Killing all recording");
-		executeCommand(KILL_INSTRUCTION);
+		LOG.info("Starting to record to '" + filename + "'");
+		executeCommand(filename).waitFor();
+		capturing = false;
 	}
 
-	private void executeCommand(String cmd) {
+	private Process executeCommand(String cmd) {
 		Runtime r = Runtime.getRuntime();
 		try {
-			r.exec(cmd);
+			return r.exec(cmd);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error("Failed to execute command '" + cmd + "'", e);
 		}
+		return  null;
 	}
 }
