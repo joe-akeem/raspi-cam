@@ -1,8 +1,10 @@
 package de.joeakeem.raspicam.welcomesound;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
@@ -15,10 +17,14 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 	private static final String DEST_DIR = "/home/pi/capture/";
 	
 	private long lastPlayed = 0;
+	
+	private Random rand = new Random();
  
 	// Remember to add filename and extension!
 	private static final String START_INSTRUCTION = "/usr/bin/raspivid -t 0 -h " +
 			HEIGHT + " -w "+ WIDTH + " -o " + DEST_DIR;
+	
+	private static final String OXM_PLAYER = "omxplayer";
  
 	@Override
 	public void handleGpioPinDigitalStateChangeEvent(
@@ -34,7 +40,15 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 	}
 
 	private void playSound() {
-		
+		File soundsDir = new File("src/main/resources/sounds");
+		File[] soundFiles = soundsDir.listFiles();
+		if (soundFiles != null) {
+			int soundToPlay = rand.nextInt(soundFiles.length);
+			System.out.println("Playing sound '" + soundFiles[soundToPlay] + "'");
+			executeCommand(OXM_PLAYER + " " + soundFiles[soundToPlay]);
+		} else {
+			System.out.println("No sounds to play!");
+		}
 	}
 
 	private void startCapture() {
