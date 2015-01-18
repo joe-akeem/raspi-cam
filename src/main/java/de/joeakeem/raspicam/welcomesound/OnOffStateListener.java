@@ -48,6 +48,8 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 				} catch (InterruptedException e) {
 					// ignore
 				}
+			} else {
+				LOG.info("Already capturing - do nothing.");
 			}
 		}
 	}
@@ -72,6 +74,7 @@ public class OnOffStateListener implements GpioPinListenerDigital {
 				+ dateFormat.format(date) + ".h264";
 		LOG.info("Starting to record to '" + filename + "'");
 		executeCommand(filename).waitFor();
+		LOG.info("Done recording to '" + filename + "'");
 		capturing = false;
 	}
 
